@@ -4,14 +4,14 @@ apt-get update -y
 
 apt-get upgrade -y
 
-apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+apt-get install -y apt-transport-https ca-certificates curl software-properties-common python3-pip python3-dev build-essential
 
 echo "adding docker repo"
 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
-apt-get update -y
-apt-get install -y docker-ce
-echo "adding docker-compose"
-curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
+git clone https://github.com/hujingwei3303/DE2-C3.git
+
+pip3 install -r DE2-C3/requirement.txt
+
+
+
+
