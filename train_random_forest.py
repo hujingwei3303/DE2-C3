@@ -46,27 +46,24 @@ def cartesian_product(*arrays):
         arr[...,i] = a
     return arr.reshape(-1, la)
 
-@ray.remote
 def train_search(n_estimators,max_depth,ccp_alpha,X,y,random_state = 42):
     ''' max_depth, n_estimators and ccp_alpha '''
     
     target_model = RandomForestClassifier(n_estimators = n_estimators,max_depth=max_depth,ccp_alpha=ccp_alpha,random_state=random_state)
     
-    score = cross_val_score(target_model, X, y,scoring='accuracy',cv=5)
+    score = cross_val_score(target_model, X, y,scoring='accuracy',cv=4)
 
     return (score,target_model)
 
 def train_grid_search(random_state = 42):
     ''' max_depth, n_estimators and ccp_alpha '''
-    X_train,y_train,X_test,y_test = get_data(random_state=random_state,test_size=0.1)
+    X_valid,y_valid,_,_ = get_data(random_state=random_state,test_size=0.1)
     
-    n_estimators = list(range(100,1000,200))
+    n_estimators = [500,1000,1500]
     
-    max_depth = list(range(2,10,3))
+    max_depth = [1,8,20]
     
-    #max_depth.insert(0,None)
-    
-    ccp_alpha = np.arange(0.,0.02,0.005)
+    ccp_alpha = [0,0.005,0.015,0.025]
     
     hyperparameter_grid = {'n_estimators':n_estimators,'max_depth': max_depth,'ccp_alpha': ccp_alpha}
     
@@ -78,26 +75,9 @@ def train_grid_search(random_state = 42):
                                cv=4)
     
     # Fit on the all training data using random search object
-    grid_cv.fit(X_train, y_train)
-    
-    accuracy = np.mean(grid_cv.best_estimator_.predict(X_test)==y_test)
-    
-    params = grid_cv.best_estimator_.get_params()
+    grid_cv.fit(X_valid, y_valid)
+    return grid_cv.best_estimator
 
-    return {'best_accuracy':accuracy,'best_params':params}
-
-def get_search_params():
-    n_estimators = np.array(range(50,1050,100))
-
-    max_depth = list(range(2,15,3))
-
-    max_depth.insert(0,None)
-
-    max_depth=np.array(max_depth)
-
-    ccp_alpha = np.arange(0.,0.02,0.005)
-
-    return cartesian_product(n_estimators,max_depth,ccp_alpha)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -108,29 +88,18 @@ if __name__ == '__main__':
     
     t_start = time.time()
     
-    #X_train,y_train,X_test,y_test = get_data(random_state=42,test_size=0.1)
-
-    #X_id = ray.put(X_train)
-    #y_id = ray.put(y_train)
-
-    #result = ray.get([ train_search.remote(param[0],param[1],param[2],X_id,y_id,42) for param in get_search_params()])
-    
-    #scores,estimators = zip(*result)
-    #best_estimator = estimators[np.array(scores).argmax()]
-
-    #accuracy = np.mean(best_estimator.predict(X_test)==y_test)
-    
-    #grid_result = {'accuracy':accuracy,'params':best_estimator.get_params()}
-    grid_result = train_grid_search()
+    estimator = train_grid_search()
 
     t_end = time.time()
+    
+    X_train,y_train,X_test,y_test = get_data(random_state=44,test_size=0.2)
+    
+    estimator.fit(X_train,y_train)
+    
+    accuracy = np.mean(estimator.predict(X_test)==y_test)
+    
+    grid_result = {'accuracy':accuracy,'best_params':estimator.get_params()}
+
     print(f'Grid Search Time:{t_end-t_start}')
     print(f'Grid Search Result:{grid_result}')
-    #with open("training_log.log") as fil:
-        #fil.write(f'Train Default:{default_result}')
-        #fil.write('\n')
-        #fil.write(f'Grid Search Time:{t_end-t_start}')
-        #fil.write('\n')
-        #fil.write(f'Grid Search Result:{grid_result}')
-        #fil.write('\n')
    
