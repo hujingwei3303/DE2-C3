@@ -1,3 +1,6 @@
+pandas
+dataclasses
+tabulate
 numpy
 scikit-learn
-ray
+ray[tune] tune-sklearn
