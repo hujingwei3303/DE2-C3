@@ -59,13 +59,13 @@ def train_grid_search(random_state = 42):
     ''' max_depth, n_estimators and ccp_alpha '''
     X_valid,y_valid,_,_ = get_data(random_state=random_state,test_size=0.1)
     
-    n_estimators = [500,1000,1500]
+    n_estimators = [10,50]
     
-    max_depth = [1,8,20]
+    max_depth = [5,50,100]
     
-    ccp_alpha = [0,0.005,0.015,0.025]
+    ccp_alpha = [0.001,0.01]
     
-    hyperparameter_grid = {'n_estimators':n_estimators,'max_depth': max_depth,'ccp_alpha': ccp_alpha}
+    hyperparameter_grid = {'n_estimators':n_estimators,'max_depth':max_depth,'ccp_alpha': ccp_alpha}
     
     target_model = RandomForestClassifier(random_state=random_state)
     
